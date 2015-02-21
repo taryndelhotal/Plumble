@@ -34,7 +34,6 @@ public class BluetoothSocketService {
             UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
 
 
-
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
     private AcceptThread mSecureAcceptThread;
@@ -58,7 +57,7 @@ public class BluetoothSocketService {
         Log.d(TAG, "setState() " + mState + " -> " + state);
         mState = state;
 
-      //  mHandler.obtainMessage(Constants.)
+      mHandler.obtainMessage(Constants.MESSAGE_STATE_CHANGE);
     }
 
     public synchronized int getState() {
@@ -68,6 +67,7 @@ public class BluetoothSocketService {
     public synchronized void start() {
         Log.d(TAG, "start");
 
+        //cancel other threads
         if (mConnectThread != null) {
             mConnectThread.cancel();
             mConnectThread = null;
@@ -78,8 +78,10 @@ public class BluetoothSocketService {
             mConnectedThread = null;
         }
 
+        //start listening
         setState(STATE_LISTEN);
 
+        //start new accept thread
         if (mSecureAcceptThread == null) {
             mSecureAcceptThread = new AcceptThread(true);
             mSecureAcceptThread.start();
@@ -91,6 +93,8 @@ public class BluetoothSocketService {
 
     }
 
+    //connect to device if secure
+    //cancel threads running or trying to run
     public synchronized void connect(BluetoothDevice device, boolean secure) {
         Log.d(TAG, "connect to: " + device);
 
@@ -166,6 +170,7 @@ public class BluetoothSocketService {
     public synchronized void stop() {
         Log.d(TAG, "stop");
 
+        //check connect thread and connected thread
         if (mConnectThread != null) {
             mConnectThread.cancel();
             mConnectThread = null;
@@ -175,7 +180,8 @@ public class BluetoothSocketService {
             mConnectedThread.cancel();
             mConnectedThread = null;
         }
-
+        //check secure and insecure accept thread
+        //we may not use insecure accept thread
         if (mSecureAcceptThread != null) {
             mSecureAcceptThread.cancel();
             mSecureAcceptThread = null;
@@ -208,6 +214,7 @@ public class BluetoothSocketService {
 
     /**
      * Indicate that the connection attempt failed and notify the UI Activity.
+     * restart listening mode
      */
     private void connectionFailed() {
         // Send a failure message back to the Activity
@@ -223,6 +230,7 @@ public class BluetoothSocketService {
 
     /**
      * Indicate that the connection was lost and notify the UI Activity.
+     * restart listening mode
      */
     private void connectionLost() {
         // Send a failure message back to the Activity
@@ -240,6 +248,7 @@ public class BluetoothSocketService {
      * This thread runs while listening for incoming connections. It behaves
      * like a server-side client. It runs until a connection is accepted
      * (or until cancelled).
+     * THE ANDROID APP IS THE SERVER SIDE CLIEND -- ACCEPT THREAD
      */
     private class AcceptThread extends Thread {
         // The local server socket
@@ -250,13 +259,14 @@ public class BluetoothSocketService {
             BluetoothServerSocket tmp = null;
             mSocketType = secure ? "Secure" : "Insecure";
 
-            // Create a new listening server socket
+            // Create a new LISTENING server socket
+            //these are both the same right now
             try {
                 if (secure) {
                     tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME_SECURE,
                             MY_UUID_SECURE);
                 } else {
-                    tmp = mAdapter.listenUsingInsecureRfcommWithServiceRecord(
+                    tmp = mAdapter.listenUsingRfcommWithServiceRecord(
                             NAME_INSECURE, MY_UUID_INSECURE);
                 }
             } catch (IOException e) {
@@ -325,6 +335,7 @@ public class BluetoothSocketService {
      * This thread runs while attempting to make an outgoing connection
      * with a device. It runs straight through; the connection either
      * succeeds or fails.
+     * THE LINC BAND IS THE CLIENT DEVICE -- CONNECT THREAD
      */
     private class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
@@ -337,13 +348,14 @@ public class BluetoothSocketService {
             mSocketType = secure ? "Secure" : "Insecure";
 
             // Get a BluetoothSocket for a connection with the
-            // given BluetoothDevice
+            // given BluetoothDevice, may not use insecure mode
+            // creates the socket
             try {
                 if (secure) {
                     tmp = device.createRfcommSocketToServiceRecord(
                             MY_UUID_SECURE);
                 } else {
-                    tmp = device.createInsecureRfcommSocketToServiceRecord(
+                    tmp = device.createRfcommSocketToServiceRecord(
                             MY_UUID_INSECURE);
                 }
             } catch (IOException e) {
