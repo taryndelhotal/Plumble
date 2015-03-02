@@ -33,7 +33,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:gravity="center|left"
-        android:text="@string/app_name"
+        android:text="Linc"
         android:textColor="#FFFFFF"
         android:lines="2"
     	android:ellipsize="marquee"

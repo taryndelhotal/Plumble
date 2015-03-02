@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!--
   ~ Copyright (C) 2014 Andrew Comminos
   ~
@@ -15,9 +14,9 @@
   ~
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  -->
-
+-->
 <resources>
+
     <!-- Drawer pane -->
     <string name="drawer_open">Open Drawer</string>
     <string name="drawer_close">Close Drawer</string>
@@ -61,7 +60,7 @@
     <string name="comment_view">DISPLAY</string>
     <string name="comment_edit_source">EDIT SOURCE</string>
     <string name="comment_view_source">VIEW SOURCE</string>
-    
+
     <!-- Server Info Fragment -->
     <string name="control_channel">Control channel</string>
     <string name="tcp_encryption_mode">Encrypted with 256 bit AES256-SHA</string>
@@ -103,7 +102,7 @@
     <string name="mute">Mute</string>
     <string name="deafen">Deafen</string>
     <string name="disconnect">Disconnect</string>
-    <string name="disconnectSure">Are you sure you want to disconnect from Mumble?</string>
+    <string name="disconnectSure">Are you sure you want to disconnect from Linc?</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
     <string name="preferences">Preferences</string>
@@ -151,9 +150,9 @@
     <string name="offline">Offline</string>
     <string name="clearChat">Clear Chat</string>
     <string name="connected">Connected</string>
-    <string name="plumbleConnected">Plumble Connected</string>
-    <string name="plumbleConnecting">Plumble Connecting</string>
-    <string name="plumbleDisconnected">Plumble Disconnected</string>
+    <string name="plumbleConnected">Linc Band Connected</string>
+    <string name="plumbleConnecting">Linc Band Connecting</string>
+    <string name="plumbleDisconnected">Linc Band Disconnected</string>
     <string name="lostConnection">Lost connection to the server.</string>
     <string name="resume">Resume</string>
     <string name="channel">Channel</string>
@@ -181,7 +180,7 @@
     <string name="country">Country</string>
     <string name="share">Share</string>
     <string name="description">Description</string>
-    <string name="shareMessage">Join this Mumble server with Plumble! %s</string>
+    <string name="shareMessage">Join this Mumble server with Plumble Backend! %s</string>
     <string name="noServerInfo">Ping to fetch info</string>
     <string name="status_notify_muted_and_deafened">Muted and deafened.</string>
     <string name="status_notify_muted">Muted.</string>
@@ -208,7 +207,7 @@
     <string name="hint_reason">Reason</string>
     <string name="hint_ptt">Push to Talk</string>
     <string name="hint_ptt_summary">Simply press this button down to talk. Double-tap to toggle it.</string>
-    <string name="hint_server_add">Welcome to Plumble</string>
+    <string name="hint_server_add">Welcome to Linc</string>
     <string name="hint_server_add_summary">To begin, add a favourite server by pressing the add button on the action bar.</string>
     <string name="hint_switching">Switching Between Views</string>
     <string name="hint_switching_summary">Switch between the chat and channel views by using the buttons in the top left, or swiping.</string>
@@ -224,7 +223,7 @@
     <string name="channel_add">Add Channel</string>
     <string name="tts_failed">TTS failed to initialize</string>
     <string name="mumble_url_parse_failed">Failed to parse Mumble URL!</string>
-    <string name="first_run_generate_certificate_title">Welcome to Plumble!</string>
+    <string name="first_run_generate_certificate_title">Welcome to Linc!</string>
     <string name="first_run_generate_certificate">Generating a certificate is highly recommended, and necessary for connection to some servers.</string>
     <string name="generate">Generate</string>
     <string name="certificate_not_valid">Could not load certificate \'%s\'!</string>
@@ -246,4 +245,7 @@
     <string name="invalid_username">Invalid username</string>
     <string name="cancel_reconnect">Cancel reconnect</string>
     <string name="attempting_reconnect">Error: %s.\n\nAttempting to reconnect.</string>
+    <string name="title_activity_splashlogo">splashlogo</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

@@ -82,15 +82,15 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
         mServerGrid.setOnItemClickListener(this);
         mServerGrid.setEmptyView(view.findViewById(R.id.server_list_grid_empty));
 
-        TextView donateText = (TextView) view.findViewById(R.id.donate_box);
-        donateText.setVisibility(BuildConfig.DONATE_NAG ? View.VISIBLE : View.GONE);
-        donateText.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent playIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.morlunk.mumbleclient"));
-                startActivity(playIntent);
-            }
-        });
+ //       TextView donateText = (TextView) view.findViewById(R.id.donate_box);
+ //     donateText.setVisibility(BuildConfig.DONATE_NAG ? View.VISIBLE : View.GONE);
+ //       donateText.setOnClickListener(new OnClickListener() {
+ //           @Override
+ //           public void onClick(View v) {
+ //               Intent playIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.morlunk.mumbleclient"));
+ //               startActivity(playIntent);
+ //           }
+ //       });
 
         registerForContextMenu(mServerGrid);
         return view;
