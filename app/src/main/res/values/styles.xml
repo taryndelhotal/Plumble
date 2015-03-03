@@ -21,16 +21,16 @@
     
     <style name="Theme.Plumble" parent="@style/Theme.AppCompat.Light.DarkActionBar">
         <item name="android:textColorPrimary">#000</item>
-        <item name="android:textColorSecondary">#666</item>
+        <item name="android:textColorSecondary">#5fb2de</item> 
         <item name="android:textColorPrimaryInverse">#FFF</item>
-        <item name="android:textColorSecondaryInverse">#AAA</item>
+        <item name="android:textColorSecondaryInverse">#666</item>
 
         <item name="android:actionBarStyle">@style/PlumbleDarkActionBar</item>
         <item name="actionBarStyle">@style/PlumbleDarkActionBar</item>
 
-        <item name="colorPrimary">#5fb2de</item>
-        <item name="colorPrimaryDark">#606060</item>
-        <item name="colorAccent">#5fb2de</item>
+        <item name="colorPrimary">#606060</item>
+        <item name="colorPrimaryDark">#5fb2de</item>
+        <item name="colorAccent">#606060</item>
 
         <item name="cardStyle">@style/Theme.Plumble.CardView</item>
     </style>
