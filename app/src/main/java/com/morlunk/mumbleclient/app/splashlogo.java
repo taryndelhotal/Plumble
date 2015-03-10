@@ -1,15 +1,11 @@
 package com.morlunk.mumbleclient.app;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.morlunk.mumbleclient.R;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 
 public class splashlogo extends Activity {
@@ -20,7 +16,7 @@ public class splashlogo extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.lincsplashscreen);
+        setContentView(R.layout.linc_splash_screen);
 
         new Handler().postDelayed(new Runnable() {
 

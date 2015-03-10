@@ -241,9 +241,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //need to start running BluetoothSocketServer
-
-
         setStayAwake(mSettings.shouldStayAwake());
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -251,7 +248,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
 
         mDatabase = new PlumbleSQLiteDatabase(this); // TODO add support for cloud storage
         mDatabase.open();
-
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setOnItemClickListener(this);

@@ -22,6 +22,14 @@
     android:padding="8dp">
 
     <TextView
+        android:id="@+id/server_enter_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/enter_server_info"
+        android:textSize="25dp"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
         android:id="@+id/server_edit_name_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

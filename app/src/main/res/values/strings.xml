@@ -88,6 +88,7 @@
     <string name="channels">Channels</string>
     <string name="no_servers">No servers added.\nPress the \'add\' button on the action bar to begin.</string>
     <string name="server_add">Add Server</string>
+    <string name="enter_server_info">Enter server information</string>
     <string name="server_password">Password</string>
     <string name="server_username">Username</string>
     <string name="server_port">Port</string>
@@ -247,5 +248,8 @@
     <string name="attempting_reconnect">Error: %s.\n\nAttempting to reconnect.</string>
     <string name="title_activity_splashlogo">splashlogo</string>
     <string name="hello_world">Hello world!</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

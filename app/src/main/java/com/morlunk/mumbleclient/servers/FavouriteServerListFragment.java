@@ -19,6 +19,7 @@ package com.morlunk.mumbleclient.servers;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -35,6 +36,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.morlunk.jumble.model.Server;
 import com.morlunk.mumbleclient.BuildConfig;
@@ -56,10 +58,32 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
     private GridView mServerGrid;
     private ServerAdapter mServerAdapter;
 
+    private static final int REQUEST_ENABLE_BT = 1;
+    private BluetoothAdapter myBluetoothAdapter;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Hide plus buttoon
+        setHasOptionsMenu(false);
+
+        // Display BT enable Fragment
+        myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (!myBluetoothAdapter.isEnabled()) {
+            Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
+
+            //Toast.makeText(getApplicationContext(), "Bluetooth turned on", Toast.LENGTH_LONG).show();
+        }
+        else {
+            //Toast.makeText(getApplicationContext(), "Bluetooth is already on", Toast.LENGTH_LONG).show();
+        }
+
+        // Show plus button
         setHasOptionsMenu(true);
+
+
     }
 
     @Override
@@ -82,15 +106,15 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
         mServerGrid.setOnItemClickListener(this);
         mServerGrid.setEmptyView(view.findViewById(R.id.server_list_grid_empty));
 
- //       TextView donateText = (TextView) view.findViewById(R.id.donate_box);
- //     donateText.setVisibility(BuildConfig.DONATE_NAG ? View.VISIBLE : View.GONE);
- //       donateText.setOnClickListener(new OnClickListener() {
- //           @Override
- //           public void onClick(View v) {
- //               Intent playIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.morlunk.mumbleclient"));
- //               startActivity(playIntent);
- //           }
- //       });
+/*        TextView donateText = (TextView) view.findViewById(R.id.donate_box);
+      donateText.setVisibility(BuildConfig.DONATE_NAG ? View.VISIBLE : View.GONE);
+        donateText.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent playIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.morlunk.mumbleclient"));
+                startActivity(playIntent);
+            }
+        });*/
 
         registerForContextMenu(mServerGrid);
         return view;
