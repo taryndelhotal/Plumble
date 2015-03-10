@@ -62,10 +62,12 @@ public class ServerSocketSetUp extends Fragment {
     Semaphore masterRequestSem = new Semaphore(1, true);
 
     // Thread-Listen
-    private Thread m_BTserverThread= new Thread() {
+    private Thread m_BTserverThread = new Thread() {
         public void run() {
             listenBTclientReq();
-        };
+        }
+
+        ;
     };
 
     /**
@@ -146,7 +148,7 @@ public class ServerSocketSetUp extends Fragment {
     }
 
     protected void listenBTclientReq() {
-        try{
+        try {
             // Create BT Service
             m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM,
                     UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
@@ -160,25 +162,25 @@ public class ServerSocketSetUp extends Fragment {
             BluetoothSocket socket = m_serverSocket.accept();
 
             // Process the Client Request
-            if(socket != null){
+            if (socket != null) {
                 InputStream inputStream = socket.getInputStream();
                 final OutputStream outputStream = socket.getOutputStream();
                 final PrintWriter pw = new PrintWriter(new OutputStreamWriter(outputStream));
                 int read = -1;
                 final byte[] bytes = new byte[2048];
                 // final byte[] sendBytes = new byte[2048];
-                for (; (read = inputStream.read(bytes)) > -1;){
+                for (; (read = inputStream.read(bytes)) > -1; ) {
                     final int count = read;
                     m_handler.post(new Runnable() {
                         @Override
                         public void run() {
                             StringBuilder b = new StringBuilder();
-                            for(int i =0; i < count; ++i){
-                                if(i > 0){
+                            for (int i = 0; i < count; ++i) {
+                                if (i > 0) {
                                     b.append(' ');
                                 }
                                 String s = Integer.toString(bytes[i] & 0xFF);
-                                if(s.length() < 2){
+                                if (s.length() < 2) {
                                     b.append('0');
                                 }
                                 b.append(s);

@@ -57,7 +57,6 @@ public class ServerEditFragment extends DialogFragment {/*
     private ServerEditListener mListener;
     private DatabaseProvider mDatabaseProvider;
 
-
     // Represents name of the server --Added by Carabes
     public static final String PROTOCOL_SCHEME_RFCOMM = "btspp";
 

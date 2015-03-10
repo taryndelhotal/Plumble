@@ -61,7 +61,7 @@ public abstract class ServerAdapter<E extends Server> extends ArrayAdapter<E> {
     public View getView(int position, View v, ViewGroup parent) {
         View view = v;
 
-        if(v == null) {
+        if (v == null) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(mViewResource, parent, false);
         }
@@ -79,11 +79,11 @@ public abstract class ServerAdapter<E extends Server> extends ArrayAdapter<E> {
 
         nameText.setText(server.getName());
 
-        if(userText != null) userText.setText(server.getUsername());
-        if(addressText != null) addressText.setText(server.getHost()+":"+server.getPort());
+        if (userText != null) userText.setText(server.getUsername());
+        if (addressText != null) addressText.setText(server.getHost() + ":" + server.getPort());
 
         final ImageView moreButton = (ImageView) view.findViewById(R.id.server_row_more);
-        if(moreButton != null) {
+        if (moreButton != null) {
             moreButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -102,18 +102,18 @@ public abstract class ServerAdapter<E extends Server> extends ArrayAdapter<E> {
         serverLatencyText.setVisibility(!requestExists ? View.INVISIBLE : View.VISIBLE);
         serverInfoProgressBar.setVisibility(!requestExists ? View.VISIBLE : View.INVISIBLE);
 
-        if(infoResponse != null && !requestFailure) {
-            serverVersionText.setText(getContext().getString(R.string.online)+" ("+infoResponse.getVersionString()+")");
-            serverUsersText.setText(infoResponse.getCurrentUsers()+"/"+infoResponse.getMaximumUsers());
-            serverLatencyText.setText(infoResponse.getLatency()+"ms");
-        } else if(requestFailure) {
+        if (infoResponse != null && !requestFailure) {
+            serverVersionText.setText(getContext().getString(R.string.online) + " (" + infoResponse.getVersionString() + ")");
+            serverUsersText.setText(infoResponse.getCurrentUsers() + "/" + infoResponse.getMaximumUsers());
+            serverLatencyText.setText(infoResponse.getLatency() + "ms");
+        } else if (requestFailure) {
             serverVersionText.setText(R.string.offline);
             serverUsersText.setText("");
             serverLatencyText.setText("");
         }
 
         // Ping server if available
-        if(infoResponse == null) {
+        if (infoResponse == null) {
             ServerInfoTask task = new ServerInfoTask() {
                 protected void onPostExecute(ServerInfoResponse result) {
                     super.onPostExecute(result);
@@ -123,7 +123,7 @@ public abstract class ServerAdapter<E extends Server> extends ArrayAdapter<E> {
             };
 
             // Execute on parallel threads if API >= 11.
-            if(Build.VERSION.SDK_INT >= 11) {
+            if (Build.VERSION.SDK_INT >= 11) {
                 task.executeOnExecutor(mPingExecutor, server);
             } else {
                 task.execute(server);
@@ -146,5 +146,6 @@ public abstract class ServerAdapter<E extends Server> extends ArrayAdapter<E> {
     }
 
     public abstract int getPopupMenuResource();
+
     public abstract boolean onPopupItemClick(Server server, MenuItem menuItem);
 }

@@ -60,7 +60,7 @@ class PublicServerFetchTask extends AsyncTask<Void, Void, List<PublicServer>> {
             List<PublicServer> serverList = new ArrayList<PublicServer>();
 
             parser.require(XmlPullParser.START_TAG, null, "servers");
-            while(parser.next() != XmlPullParser.END_TAG) {
+            while (parser.next() != XmlPullParser.END_TAG) {
                 if (parser.getEventType() != XmlPullParser.START_TAG) {
                     continue;
                 }

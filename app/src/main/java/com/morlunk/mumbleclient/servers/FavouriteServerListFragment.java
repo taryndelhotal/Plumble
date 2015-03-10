@@ -48,8 +48,8 @@ import java.util.List;
 
 /**
  * Displays a list of servers, and allows the user to connect and edit them.
- * @author morlunk
  *
+ * @author morlunk
  */
 public class FavouriteServerListFragment extends Fragment implements OnItemClickListener, FavouriteServerAdapter.FavouriteServerAdapterMenuListener {
 
@@ -75,8 +75,7 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
             startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
 
             //Toast.makeText(getApplicationContext(), "Bluetooth turned on", Toast.LENGTH_LONG).show();
-        }
-        else {
+        } else {
             //Toast.makeText(getApplicationContext(), "Bluetooth is already on", Toast.LENGTH_LONG).show();
         }
 
@@ -91,10 +90,10 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
         super.onAttach(activity);
 
         try {
-            mConnectHandler = (ServerConnectHandler)activity;
+            mConnectHandler = (ServerConnectHandler) activity;
             mDatabaseProvider = (DatabaseProvider) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()+" must implement ServerConnectHandler!");
+            throw new ClassCastException(activity.toString() + " must implement ServerConnectHandler!");
         }
     }
 
@@ -134,7 +133,7 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.menu_add_server_item) {
+        if (item.getItemId() == R.id.menu_add_server_item) {
             addServer();
             return true;
         }
@@ -156,7 +155,7 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
 
     public void shareServer(Server server) {
         // Build Mumble server URL
-        String serverUrl = "mumble://"+server.getHost()+":"+server.getPort()+"/";
+        String serverUrl = "mumble://" + server.getHost() + ":" + server.getPort() + "/";
 
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
@@ -186,7 +185,6 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
     }
 
 
-
     public List<Server> getServers() {
         List<Server> servers = mDatabaseProvider.getDatabase().getServers();
         return servers;
@@ -199,6 +197,7 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
 
     public static interface ServerConnectHandler {
         public void connectToServer(Server server);
+
         public void connectToPublicServer(PublicServer server);
     }
 }

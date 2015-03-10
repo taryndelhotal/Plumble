@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
-* Created by andrew on 07/05/14.
-*/
+ * Created by andrew on 07/05/14.
+ */
 public class PublicServerAdapter extends ServerAdapter<PublicServer> {
     private List<PublicServer> mUnfilteredServers;
     private PublicServerAdapterMenuListener mListener;
@@ -47,11 +47,11 @@ public class PublicServerAdapter extends ServerAdapter<PublicServer> {
     public void filter(String queryName, String queryCountry) {
         clear();
 
-        for(PublicServer server : mUnfilteredServers) {
+        for (PublicServer server : mUnfilteredServers) {
             String serverName = server.getName() != null ? server.getName().toUpperCase(Locale.US) : "";
             String serverCountry = server.getCountry() != null ? server.getCountry().toUpperCase(Locale.US) : "";
 
-            if(serverName.contains(queryName) && serverCountry.contains(queryCountry))
+            if (serverName.contains(queryName) && serverCountry.contains(queryCountry))
                 add(server);
         }
     }

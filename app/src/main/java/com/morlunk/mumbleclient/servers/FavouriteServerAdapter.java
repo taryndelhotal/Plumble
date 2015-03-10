@@ -61,7 +61,9 @@ public class FavouriteServerAdapter extends ServerAdapter<Server> {
 
     public static interface FavouriteServerAdapterMenuListener {
         public void editServer(Server server);
+
         public void shareServer(Server server);
+
         public void deleteServer(Server server);
     }
 }

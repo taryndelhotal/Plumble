@@ -67,34 +67,34 @@ import java.util.concurrent.Executors;
 
 /**
  * Displays a list of public servers that can be connected to, sorted, and favourited.
- * @author morlunk
  *
+ * @author morlunk
  */
 public class PublicServerListFragment extends Fragment implements OnItemClickListener, PublicServerAdapter.PublicServerAdapterMenuListener {
-    
+
     private FavouriteServerListFragment.ServerConnectHandler mConnectHandler;
     private DatabaseProvider mDatabaseProvider;
     private List<PublicServer> mServers;
     private GridView mServerGrid;
     private ProgressBar mServerProgress;
     private PublicServerAdapter mServerAdapter;
-    
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         setHasOptionsMenu(true);
     }
-    
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        
+
         try {
-            mConnectHandler = (FavouriteServerListFragment.ServerConnectHandler)activity;
+            mConnectHandler = (FavouriteServerListFragment.ServerConnectHandler) activity;
             mDatabaseProvider = (DatabaseProvider) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()+" must implement ServerConnectHandler and DatabaseProvider!");
+            throw new ClassCastException(activity.toString() + " must implement ServerConnectHandler and DatabaseProvider!");
         }
     }
 
@@ -106,11 +106,11 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_public_server_list, container, false);
         mServerGrid = (GridView) view.findViewById(R.id.server_list_grid);
         mServerGrid.setOnItemClickListener(this);
-        if(mServerAdapter != null)
+        if (mServerAdapter != null)
             mServerGrid.setAdapter(mServerAdapter);
         mServerProgress = (ProgressBar) view.findViewById(R.id.serverProgress);
         mServerProgress.setVisibility(mServerAdapter == null ? View.VISIBLE : View.GONE);
@@ -128,11 +128,11 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_public_server_list, menu);
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (isFilled()) {
-            switch(item.getItemId()) {
+            switch (item.getItemId()) {
                 case R.id.menu_match_server:
                     showMatchDialog();
                     break;
@@ -158,7 +158,7 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
         adb.setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(usernameField.getText().length() > 0) {
+                if (usernameField.getText().length() > 0) {
                     server.setUsername(usernameField.getText().toString());
                 } else {
                     server.setUsername(settings.getDefaultUsername());
@@ -170,14 +170,14 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
         adb.setNegativeButton(android.R.string.cancel, null);
         adb.show();
     }
-    
+
     public void setServers(List<PublicServer> servers) {
         mServers = servers;
         mServerProgress.setVisibility(View.GONE);
         mServerAdapter = new PublicServerAdapter(getActivity(), servers, this);
         mServerGrid.setAdapter(mServerAdapter);
     }
-    
+
     public boolean isFilled() {
         return mServerAdapter != null;
     }
@@ -204,33 +204,31 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
     private void showSortDialog() {
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
         alertBuilder.setTitle(R.string.sortBy);
-        alertBuilder.setItems(new String[] { getString(R.string.name), getString(R.string.country)}, new SortClickListener());
+        alertBuilder.setItems(new String[]{getString(R.string.name), getString(R.string.country)}, new SortClickListener());
         alertBuilder.show();
     }
-    
+
     private void showFilterDialog() {
         View dialogView = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.dialog_server_search, null);
         final EditText nameText = (EditText) dialogView.findViewById(R.id.server_search_name);
         final EditText countryText = (EditText) dialogView.findViewById(R.id.server_search_country);
-                
+
         final AlertDialog dlg = new AlertDialog.Builder(getActivity()).
-            setTitle(R.string.search).
-            setView(dialogView).
-            setPositiveButton(R.string.search, new DialogInterface.OnClickListener() {
-                public void onClick(final DialogInterface dialog, final int which)
-                {
-                    String queryName = nameText.getText().toString().toUpperCase(Locale.US);
-                    String queryCountry = countryText.getText().toString().toUpperCase(Locale.US);
-                    mServerAdapter.filter(queryName, queryCountry);
-                    dialog.dismiss();
-                }
-            }).create();
-        
+                setTitle(R.string.search).
+                setView(dialogView).
+                setPositiveButton(R.string.search, new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int which) {
+                        String queryName = nameText.getText().toString().toUpperCase(Locale.US);
+                        String queryCountry = countryText.getText().toString().toUpperCase(Locale.US);
+                        mServerAdapter.filter(queryName, queryCountry);
+                        dialog.dismiss();
+                    }
+                }).create();
+
         nameText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         nameText.setOnEditorActionListener(new OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event)
-            {
+            public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
                 String queryName = nameText.getText().toString().toUpperCase(Locale.US);
                 String queryCountry = countryText.getText().toString().toUpperCase(Locale.US);
                 mServerAdapter.filter(queryName, queryCountry);
@@ -238,12 +236,11 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
                 return true;
             }
         });
-        
+
         countryText.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         countryText.setOnEditorActionListener(new OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event)
-            {
+            public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
                 String queryName = nameText.getText().toString().toUpperCase(Locale.US);
                 String queryCountry = countryText.getText().toString().toUpperCase(Locale.US);
                 mServerAdapter.filter(queryName, queryCountry);
@@ -251,7 +248,7 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
                 return true;
             }
         });
-        
+
         // Show keyboard automatically
         nameText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -261,7 +258,7 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
                 }
             }
         });
-        
+
         dlg.show();
     }
 
@@ -281,9 +278,11 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
                     return;
                 }
 
-                if(isVisible()) // Prevents NPEs when fragment is detached.
+                if (isVisible()) // Prevents NPEs when fragment is detached.
                     setServers(result);
-            };
+            }
+
+            ;
         }.execute();
     }
 
@@ -291,7 +290,7 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
 
         private static final int SORT_NAME = 0;
         private static final int SORT_COUNTRY = 1;
-        
+
         private Comparator<PublicServer> nameComparator = new Comparator<PublicServer>() {
             @Override
             public int compare(PublicServer lhs, PublicServer rhs) {
@@ -302,19 +301,19 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
         private Comparator<PublicServer> countryComparator = new Comparator<PublicServer>() {
             @Override
             public int compare(PublicServer lhs, PublicServer rhs) {
-                if(rhs.getCountry() == null) return -1;
-                else if(lhs.getCountry() == null) return 1;
+                if (rhs.getCountry() == null) return -1;
+                else if (lhs.getCountry() == null) return 1;
                 return lhs.getCountry().compareTo(rhs.getCountry());
             }
         };
-        
-        
+
+
         @Override
         public void onClick(DialogInterface dialog, int which) {
             ArrayAdapter<PublicServer> arrayAdapter = mServerAdapter;
-            if(which == SORT_NAME) {
+            if (which == SORT_NAME) {
                 arrayAdapter.sort(nameComparator);
-            } else if(which == SORT_COUNTRY) {
+            } else if (which == SORT_COUNTRY) {
                 arrayAdapter.sort(countryComparator);
             }
         }
@@ -346,15 +345,15 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
             @Override
             protected void onPostExecute(ServerInfoResponse serverInfoResponse) {
                 mResponseCount++;
-                if(serverInfoResponse == null) {
+                if (serverInfoResponse == null) {
                     // TODO handle bad responses
-                } else if(serverInfoResponse.getCurrentUsers() == 0 &&
+                } else if (serverInfoResponse.getCurrentUsers() == 0 &&
                         serverInfoResponse.getVersion() == com.morlunk.jumble.Constants.PROTOCOL_VERSION) {
                     mGoodResponses.add(serverInfoResponse);
                 }
 
                 // Once we have a good sample of results, shut down the ping threads.
-                if(mResponseCount >= mResponsesToSend) {
+                if (mResponseCount >= mResponsesToSend) {
                     synchronized (mLock) {
                         mLock.notify();
                     }
@@ -392,7 +391,7 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
             final String country = params.length > 0 ? params[0] : null; // If a country is provided, search within country
 
             Collection<PublicServer> servers;
-            if(country != null) {
+            if (country != null) {
                 servers = new LinkedList<PublicServer>();
                 for (PublicServer server : mServers) {
                     if (country.equals(server.getCountryCode())) {
@@ -404,14 +403,14 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
             }
 
             // For countries with 0 servers, immediately return null.
-            if(servers.size() == 0)
+            if (servers.size() == 0)
                 return null;
 
             // If there are less servers than the value of our range, deal with it.
             mResponsesToSend = Math.min(SEARCH_RANGE, servers.size());
 
             Iterator iterator = servers.iterator();
-            while(iterator.hasNext() && mGoodResponses.size() < mResponsesToSend) {
+            while (iterator.hasNext() && mGoodResponses.size() < mResponsesToSend) {
                 PublicServer server = (PublicServer) iterator.next();
                 new MatchServerInfoTask().executeOnExecutor(mPingExecutor, server);
             }
@@ -425,7 +424,7 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
 
             Collections.sort(mGoodResponses, mLatencyComparator);
 
-            if(mGoodResponses.size() > 0)
+            if (mGoodResponses.size() > 0)
                 return mGoodResponses.get(0);
             else
                 return null;
@@ -438,7 +437,7 @@ public class PublicServerListFragment extends Fragment implements OnItemClickLis
             mProgressDialog.hide();
 
             AlertDialog.Builder adb = new AlertDialog.Builder(getActivity());
-            if(publicServer != null) {
+            if (publicServer != null) {
                 adb.setTitle(R.string.server_match_found);
                 adb.setMessage(getString(R.string.server_match_info,
                         publicServer.getName(),
