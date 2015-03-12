@@ -67,13 +67,14 @@ public class ServerEditFragment extends DialogFragment {/*
     // Server
     private BluetoothServerSocket m_serverSocket;
 
-    // Server infor variables
-    String name;
-    String host;
-    int port;
-    String username;
-    String password;
+    // Server info variables
+    public static String name;
+    public static String host;
+    public static int port;
+    public static String username;
+    public static String password;
 
+    public static Boolean clientRequest = false;
     // Thread-Listen
     private Thread m_BTserverThread = new Thread() {
         public void run() {
@@ -116,8 +117,13 @@ public class ServerEditFragment extends DialogFragment {/*
                             // Client Request Stored
                             String btClientRequest = new String(bytes, 0, count);
 
+                            // Connect to master immediately
+                            clientRequest = true;
+
                             // Send master the goods
                             if (btClientRequest.equals("GetServerInfo")) {
+
+                                // Get server information
                                 name = (mNameEdit).getText().toString().trim();
                                 host = (mHostEdit).getText().toString().trim();
                                 try {
@@ -141,6 +147,14 @@ public class ServerEditFragment extends DialogFragment {/*
                                 host = serverInfo[2];
                                 port = Integer.parseInt(serverInfo[3]);
                                 password = serverInfo[4];
+
+                                if (validate()) {
+                                    // Create server so user can see
+                                    Server server = createServer(shouldSave());
+
+                                    // Connect immediately.
+                                    if (shouldSave()) mListener.connectToServer(server);
+                                }
                             }
                         }
                     });
@@ -178,7 +192,7 @@ public class ServerEditFragment extends DialogFragment {/*
                     Server server = createServer(shouldSave());
 
                     // If we're not committing this server, connect immediately.
-                    if (!shouldSave()) mListener.connectToServer(server);
+                    if (shouldSave()) mListener.connectToServer(server);
 
                     dismiss();
                 }
@@ -251,19 +265,21 @@ public class ServerEditFragment extends DialogFragment {/*
      * @return The new or updated server.
      */
     public Server createServer(boolean shouldCommit) {
-   /*     String name = (mNameEdit).getText().toString().trim();
-        String host = (mHostEdit).getText().toString().trim();
 
-        int port;
-        try {
-            port = Integer.parseInt((mPortEdit).getText().toString());
-        } catch (final NumberFormatException ex) {
-            port = Constants.DEFAULT_PORT;
+        if (clientRequest == false) {
+            name = (mNameEdit).getText().toString().trim();
+            host = (mHostEdit).getText().toString().trim();
+
+            try {
+                port = Integer.parseInt((mPortEdit).getText().toString());
+            } catch (final NumberFormatException ex) {
+                port = Constants.DEFAULT_PORT;
+            }
+
+            username = (mUsernameEdit).getText().toString().trim();
+            password = mPasswordEdit.getText().toString();
         }
 
-        String username = (mUsernameEdit).getText().toString().trim();
-        String password = mPasswordEdit.getText().toString();
-*/
         username = (mUsernameEdit).getText().toString().trim();
         if (username.equals(""))
             username = mUsernameEdit.getHint().toString();
@@ -321,7 +337,6 @@ public class ServerEditFragment extends DialogFragment {/*
 
     public interface ServerEditListener {
         public void serverInfoUpdated();
-
         public void connectToServer(Server server);
     }
 }
