@@ -94,6 +94,7 @@
     <string name="server_port">Port</string>
     <string name="server_host">Address</string>
     <string name="server_label">Label</string>
+    <!--<string name="server_origin">Server Origin</string>-->
     <string name="connecting">Connecting</string>
     <string name="connecting_to_server">Connecting to %1$s:%2$s</string>
     <string name="fragment_chat">Chat</string>

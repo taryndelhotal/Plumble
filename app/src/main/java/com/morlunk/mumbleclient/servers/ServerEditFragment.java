@@ -57,25 +57,27 @@ public class ServerEditFragment extends DialogFragment {/*
     private ServerEditListener mListener;
     private DatabaseProvider mDatabaseProvider;
 
-    // Represents name of the server --Added by Carabes
+    // Represents name of the server.
     public static final String PROTOCOL_SCHEME_RFCOMM = "btspp";
 
     private Handler m_handler = new Handler();
 
-    // Get Default Adapter
+    // Get Default Adapter.
     private BluetoothAdapter m_bluetooth = BluetoothAdapter.getDefaultAdapter();
-    // Server
+    // Server socket.
     private BluetoothServerSocket m_serverSocket;
 
-    // Server info variables
+    // Server info variables.
     public static String name;
     public static String host;
     public static int port;
     public static String username;
     public static String password;
-
+    // To insure user still sees server info regardless of client request.
     public static Boolean clientRequest = false;
-    // Thread-Listen
+    // To insure only slave devices get disconnected
+    public static Boolean slaveServer = false;
+    // Thread-Listen.
     private Thread m_BTserverThread = new Thread() {
         public void run() {
             listenBTclientReq();
@@ -84,7 +86,7 @@ public class ServerEditFragment extends DialogFragment {/*
         ;
     };
 
-    // Creates server fragment
+    // Creates server fragment.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +98,7 @@ public class ServerEditFragment extends DialogFragment {/*
             // Create BT Service
             m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM,
                     UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+            // For testing purposes
             // Jonny's UUID 00001101-0000-1000-8000-00805f9b34fb
             // apps UUID a60f35f0-b93a-11de-8a39-08002009c666
 
@@ -114,16 +117,15 @@ public class ServerEditFragment extends DialogFragment {/*
                     m_handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            // Client Request Stored
+                            // Client Request Stored.
                             String btClientRequest = new String(bytes, 0, count);
-
-                            // Connect to master immediately
+                            // Flags the Create Server method
                             clientRequest = true;
 
-                            // Send master the goods
+                            // Handles master situation.
                             if (btClientRequest.equals("GetServerInfo")) {
 
-                                // Get server information
+                                // Get server information.
                                 name = (mNameEdit).getText().toString().trim();
                                 host = (mHostEdit).getText().toString().trim();
                                 try {
@@ -133,6 +135,7 @@ public class ServerEditFragment extends DialogFragment {/*
                                 }
                                 password = mPasswordEdit.getText().toString();
 
+                                // Writes server information to Linc Band client.
                                 String serverInfo = name + "," + host + "," + port + "," + password;
                                 byte[] sendByte = serverInfo.getBytes();
                                 try {
@@ -141,7 +144,10 @@ public class ServerEditFragment extends DialogFragment {/*
                                     e.printStackTrace();
                                 }
                             }
+                            // Handles slave situation
                             if (btClientRequest.contains("PutServerInfo")) {
+
+                                // Stores received server information
                                 String[] serverInfo = btClientRequest.split(",");
                                 name = serverInfo[1];
                                 host = serverInfo[2];
@@ -149,11 +155,14 @@ public class ServerEditFragment extends DialogFragment {/*
                                 password = serverInfo[4];
 
                                 if (validate()) {
-                                    // Create server so user can see
+                                    // Creates server  --users can see it on UI.
                                     Server server = createServer(shouldSave());
 
-                                    // Connect immediately.
+                                    // Now that we know user is slave user is connected to the master's server immediately.
                                     if (shouldSave()) mListener.connectToServer(server);
+
+                                    // Now that we have added a server
+                                    slaveServer = true;
                                 }
                             }
                         }
@@ -185,13 +194,13 @@ public class ServerEditFragment extends DialogFragment {/*
         ((AlertDialog) getDialog()).getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start listening for BT Server socket requests
+                // Start listening for BT Server socket requests.
                 m_BTserverThread.start();
 
                 if (validate()) {
                     Server server = createServer(shouldSave());
 
-                    // If we're not committing this server, connect immediately.
+                    // If we're not sure whether slave or master yet just connect immediately.
                     if (shouldSave()) mListener.connectToServer(server);
 
                     dismiss();

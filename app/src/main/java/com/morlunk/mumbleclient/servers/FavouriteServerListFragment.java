@@ -54,9 +54,9 @@ import java.util.List;
 public class FavouriteServerListFragment extends Fragment implements OnItemClickListener, FavouriteServerAdapter.FavouriteServerAdapterMenuListener {
 
     private ServerConnectHandler mConnectHandler;
-    private DatabaseProvider mDatabaseProvider;
+    private static DatabaseProvider mDatabaseProvider;
     private GridView mServerGrid;
-    private ServerAdapter mServerAdapter;
+    private static ServerAdapter mServerAdapter;
 
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter myBluetoothAdapter;
@@ -177,6 +177,12 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
         alertBuilder.setNegativeButton(android.R.string.cancel, null);
         alertBuilder.show();
     }
+
+    public static void deleteDisconnectedServer(final Server server) {
+         mDatabaseProvider.getDatabase().removeServer(server);
+         mServerAdapter.remove(server);
+    }
+
 
     public void updateServers() {
         List<Server> servers = getServers();

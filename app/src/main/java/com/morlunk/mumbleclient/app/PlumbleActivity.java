@@ -420,6 +420,10 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             case R.id.action_disconnect:
                 try {
                     getService().disconnect();
+                    // Remove server from server list if disconnected only if it is the slave server
+                    if (ServerEditFragment.slaveServer == true){
+                        FavouriteServerListFragment.deleteDisconnectedServer(getService().getConnectedServer());
+                    }
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
