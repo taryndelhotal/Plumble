@@ -237,7 +237,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         mSettings = Settings.getInstance(this);
         setTheme(mSettings.getTheme());
 
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
