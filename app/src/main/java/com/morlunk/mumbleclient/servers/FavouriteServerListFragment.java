@@ -64,7 +64,7 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Hide plus buttoon
+        // Hide plus button
         setHasOptionsMenu(false);
 
         // Display BT enable Fragment
@@ -81,8 +81,6 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
 
         // Show plus button
         setHasOptionsMenu(true);
-
-
     }
 
     @Override
@@ -104,16 +102,6 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
         mServerGrid = (GridView) view.findViewById(R.id.server_list_grid);
         mServerGrid.setOnItemClickListener(this);
         mServerGrid.setEmptyView(view.findViewById(R.id.server_list_grid_empty));
-
-/*        TextView donateText = (TextView) view.findViewById(R.id.donate_box);
-      donateText.setVisibility(BuildConfig.DONATE_NAG ? View.VISIBLE : View.GONE);
-        donateText.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent playIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.morlunk.mumbleclient"));
-                startActivity(playIntent);
-            }
-        });*/
 
         registerForContextMenu(mServerGrid);
         return view;
@@ -183,13 +171,11 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
          mServerAdapter.remove(server);
     }
 
-
     public void updateServers() {
         List<Server> servers = getServers();
         mServerAdapter = new FavouriteServerAdapter(getActivity(), servers, this);
         mServerGrid.setAdapter(mServerAdapter);
     }
-
 
     public List<Server> getServers() {
         List<Server> servers = mDatabaseProvider.getDatabase().getServers();

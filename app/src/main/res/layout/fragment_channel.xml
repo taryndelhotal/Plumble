@@ -54,4 +54,23 @@
             android:background="?attr/selectableItemBackground"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/pushtodisconnect_view"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:background="?attr/colorPrimary">
+
+        <Button
+            android:id="@+id/pushtodisconnect"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/ptdct"
+            android:textColor="?android:attr/textColorPrimaryInverse"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:background="?attr/selectableItemBackground"/>
+    </LinearLayout>
+
 </LinearLayout>

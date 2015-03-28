@@ -42,6 +42,8 @@ import com.morlunk.jumble.model.User;
 import com.morlunk.jumble.util.JumbleObserver;
 import com.morlunk.mumbleclient.R;
 import com.morlunk.mumbleclient.Settings;
+import com.morlunk.mumbleclient.app.PlumbleActivity;
+import com.morlunk.mumbleclient.servers.FavouriteServerListFragment;
 import com.morlunk.mumbleclient.util.JumbleServiceFragment;
 
 import java.util.ArrayList;
@@ -56,6 +58,7 @@ public class ChannelFragment extends JumbleServiceFragment implements SharedPref
     private ViewPager mViewPager;
     private PagerTabStrip mTabStrip;
     private Button mTalkButton;
+    private Button mDisconnectButton;
     private View mTalkView;
 
     private ChatTarget mChatTarget;
@@ -133,6 +136,25 @@ public class ChannelFragment extends JumbleServiceFragment implements SharedPref
                 return true;
             }
         });
+
+        mDisconnectButton = (Button) view.findViewById(R.id.pushtodisconnect);
+        //set up button listener
+        mDisconnectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //disconnect
+                try {
+                    getService().disconnect();
+                    // Remove server from server list if disconnected only if it is the slave server
+                    if (PlumbleActivity.serverRequest== true){
+                        FavouriteServerListFragment.deleteDisconnectedServer(getService().getConnectedServer());
+                    }
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
         configureInput();
         return view;
     }

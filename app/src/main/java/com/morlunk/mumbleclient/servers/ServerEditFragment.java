@@ -19,6 +19,7 @@ import com.morlunk.jumble.Constants;
 import com.morlunk.jumble.model.Server;
 import com.morlunk.mumbleclient.R;
 import com.morlunk.mumbleclient.Settings;
+import com.morlunk.mumbleclient.app.PlumbleActivity;
 import com.morlunk.mumbleclient.db.DatabaseProvider;
 
 import java.io.IOException;
@@ -46,26 +47,16 @@ public class ServerEditFragment extends DialogFragment {/*
  * Edited by Lupita Carabes
  */
 
-    private TextView mNameTitle;
-    private EditText mNameEdit;
-    private EditText mHostEdit;
-    private EditText mPortEdit;
-    private EditText mUsernameEdit;
-    private EditText mPasswordEdit;
-    private TextView mErrorText;
+    public static TextView mNameTitle;
+    public static EditText mNameEdit;
+    public static EditText mHostEdit;
+    public static EditText mPortEdit;
+    public static EditText mUsernameEdit;
+    public static EditText mPasswordEdit;
+    public static TextView mErrorText;
 
-    private ServerEditListener mListener;
-    private DatabaseProvider mDatabaseProvider;
-
-    // Represents name of the server.
-    public static final String PROTOCOL_SCHEME_RFCOMM = "btspp";
-
-    private Handler m_handler = new Handler();
-
-    // Get Default Adapter.
-    private BluetoothAdapter m_bluetooth = BluetoothAdapter.getDefaultAdapter();
-    // Server socket.
-    private BluetoothServerSocket m_serverSocket;
+    public static ServerEditListener mListener;
+    public static DatabaseProvider mDatabaseProvider;
 
     // Server info variables.
     public static String name;
@@ -73,105 +64,12 @@ public class ServerEditFragment extends DialogFragment {/*
     public static int port;
     public static String username;
     public static String password;
-    // To insure user still sees server info regardless of client request.
-    public static Boolean clientRequest = false;
-    // To insure only slave devices get disconnected
-    public static Boolean slaveServer = false;
-    // Thread-Listen.
-    private Thread m_BTserverThread = new Thread() {
-        public void run() {
-            listenBTclientReq();
-        }
-
-        ;
-    };
 
     // Creates server fragment.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(DialogFragment.STYLE_NO_TITLE, 0);
-    }
-
-    protected void listenBTclientReq() {
-        try {
-            // Create BT Service
-            m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM,
-                    UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
-            // For testing purposes
-            // Jonny's UUID 00001101-0000-1000-8000-00805f9b34fb
-            // apps UUID a60f35f0-b93a-11de-8a39-08002009c666
-
-            // Accept Client request
-            BluetoothSocket socket = m_serverSocket.accept();
-
-            // Process the Client Request
-            if (socket != null) {
-                final InputStream inputStream = socket.getInputStream();
-                final OutputStream outputStream = socket.getOutputStream();
-
-                int readBytes = -1;
-                final byte[] bytes = new byte[2048];
-                for (; (readBytes = inputStream.read(bytes)) > -1; ) {
-                    final int count = readBytes;
-                    m_handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Client Request Stored.
-                            String btClientRequest = new String(bytes, 0, count);
-                            // Flags the Create Server method
-                            clientRequest = true;
-
-                            // Handles master situation.
-                            if (btClientRequest.equals("GetServerInfo")) {
-
-                                // Get server information.
-                                name = (mNameEdit).getText().toString().trim();
-                                host = (mHostEdit).getText().toString().trim();
-                                try {
-                                    port = Integer.parseInt((mPortEdit).getText().toString());
-                                } catch (final NumberFormatException ex) {
-                                    port = Constants.DEFAULT_PORT;
-                                }
-                                password = mPasswordEdit.getText().toString();
-
-                                // Writes server information to Linc Band client.
-                                String serverInfo = name + "," + host + "," + port + "," + password;
-                                byte[] sendByte = serverInfo.getBytes();
-                                try {
-                                    outputStream.write(sendByte);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            // Handles slave situation
-                            if (btClientRequest.contains("PutServerInfo")) {
-
-                                // Stores received server information
-                                String[] serverInfo = btClientRequest.split(",");
-                                name = serverInfo[1];
-                                host = serverInfo[2];
-                                port = Integer.parseInt(serverInfo[3]);
-                                password = serverInfo[4];
-
-                                if (validate()) {
-                                    // Creates server  --users can see it on UI.
-                                    Server server = createServer(shouldSave());
-
-                                    // Now that we know user is slave user is connected to the master's server immediately.
-                                    if (shouldSave()) mListener.connectToServer(server);
-
-                                    // Now that we have added a server
-                                    slaveServer = true;
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -194,14 +92,12 @@ public class ServerEditFragment extends DialogFragment {/*
         ((AlertDialog) getDialog()).getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start listening for BT Server socket requests.
-                m_BTserverThread.start();
 
                 if (validate()) {
                     Server server = createServer(shouldSave());
 
                     // If we're not sure whether slave or master yet just connect immediately.
-                    if (shouldSave()) mListener.connectToServer(server);
+                    if (!shouldSave()) mListener.connectToServer(server);
 
                     dismiss();
                 }
@@ -275,9 +171,9 @@ public class ServerEditFragment extends DialogFragment {/*
      */
     public Server createServer(boolean shouldCommit) {
 
-        if (clientRequest == false) {
+        //if (clientRequest == false) {
             name = (mNameEdit).getText().toString().trim();
-            host = (mHostEdit).getText().toString().trim();
+            host = "76.105.240.184";
 
             try {
                 port = Integer.parseInt((mPortEdit).getText().toString());
@@ -287,7 +183,7 @@ public class ServerEditFragment extends DialogFragment {/*
 
             username = (mUsernameEdit).getText().toString().trim();
             password = mPasswordEdit.getText().toString();
-        }
+        //}
 
         username = (mUsernameEdit).getText().toString().trim();
         if (username.equals(""))
@@ -322,9 +218,9 @@ public class ServerEditFragment extends DialogFragment {/*
     public boolean validate() {
         String error = null;
 
-        if (mHostEdit.getText().length() == 0) {
+        /*if (mHostEdit.getText().length() == 0) {
             error = getString(R.string.invalid_host);
-        } else if (mPortEdit.getText().length() > 0) {
+        } else*/ if (mPortEdit.getText().length() > 0) {
             try {
                 int port = Integer.parseInt(mPortEdit.getText().toString());
                 if (port < 0 || port > 65535) {

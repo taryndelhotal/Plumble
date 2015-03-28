@@ -53,4 +53,5 @@
         android:paddingLeft="10dp"
         android:text="The quick brown fox"
         android:textSize="14sp"/>
+
 </LinearLayout>
