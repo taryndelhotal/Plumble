@@ -20,15 +20,15 @@
     tools:ignore="NewApi">
     
     <style name="Theme.Plumble" parent="@style/Theme.AppCompat.Light.DarkActionBar">
-        <item name="android:textColorPrimary">#33b5e5</item>
+        <item name="android:textColorPrimary">#00c5cd</item>
         <item name="android:textColorSecondary">#839496</item>
         <item name="android:textColorPrimaryInverse">#FFF</item>
-        <item name="android:textColorSecondaryInverse">#70cbec</item>
+        <item name="android:textColorSecondaryInverse">#00c5cd</item>
 
         <item name="android:actionBarStyle">@style/PlumbleDarkActionBar</item>
         <item name="actionBarStyle">@style/PlumbleDarkActionBar</item>
 
-        <item name="colorPrimary">#33b5e5</item>
+        <item name="colorPrimary">#00c5cd</item>
         <item name="colorPrimaryDark">#FFF</item>
         <item name="colorAccent">#606060</item>
 

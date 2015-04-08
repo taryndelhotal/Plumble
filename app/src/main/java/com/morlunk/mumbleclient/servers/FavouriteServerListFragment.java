@@ -38,9 +38,11 @@ import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.morlunk.jumble.Constants;
 import com.morlunk.jumble.model.Server;
 import com.morlunk.mumbleclient.BuildConfig;
 import com.morlunk.mumbleclient.R;
+import com.morlunk.mumbleclient.app.PlumbleActivity;
 import com.morlunk.mumbleclient.db.DatabaseProvider;
 import com.morlunk.mumbleclient.db.PublicServer;
 
@@ -66,18 +68,6 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
         super.onCreate(savedInstanceState);
         // Hide plus button
         setHasOptionsMenu(false);
-
-        // Display BT enable Fragment
-        myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        if (!myBluetoothAdapter.isEnabled()) {
-            Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
-
-            //Toast.makeText(getApplicationContext(), "Bluetooth turned on", Toast.LENGTH_LONG).show();
-        } else {
-            //Toast.makeText(getApplicationContext(), "Bluetooth is already on", Toast.LENGTH_LONG).show();
-        }
 
         // Show plus button
         setHasOptionsMenu(true);
@@ -111,6 +101,7 @@ public class FavouriteServerListFragment extends Fragment implements OnItemClick
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_server_list, menu);
+
     }
 
     @Override

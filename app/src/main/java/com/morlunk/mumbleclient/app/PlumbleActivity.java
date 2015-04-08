@@ -19,7 +19,9 @@ package com.morlunk.mumbleclient.app;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.ComponentName;
@@ -45,6 +47,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -128,6 +131,8 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     public static final String PROTOCOL_SCHEME_RFCOMM = "btspp";
 
     private Handler m_handler = new Handler();
+
+    private static final int REQUEST_ENABLE_BT = 1;
 
     // Get Default Adapter.
     private BluetoothAdapter m_bluetooth = BluetoothAdapter.getDefaultAdapter();
@@ -292,9 +297,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
 
         setStayAwake(mSettings.shouldStayAwake());
 
-        // Start listening for BT Server socket requests.
-        m_BTserverThread.start();
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         preferences.registerOnSharedPreferenceChangeListener(this);
 
@@ -388,7 +390,53 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                 e.printStackTrace();
             }
         }
-        if (mSettings.isFirstRun()) showSetupWizard();
+        if (mSettings.isFirstRun()) {
+            showSetupWizard();
+            CreatUserServer();
+        }
+        if (!m_bluetooth.isEnabled()) {
+            Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
+            //Toast.makeText(getApplicationContext(), "Bluetooth turned on", Toast.LENGTH_LONG).show();
+        }
+        lastThread = this.m_BTserverThread;
+        startService(new Intent(this, SocketService.class));
+    }
+
+    public void CreatUserServer() {
+
+        // Get server information.
+        try {
+            name = (ServerEditFragment.mNameEdit).getText().toString().trim();
+        } catch (final NullPointerException ex) {
+            name = "LincBand";
+        }
+        try {
+            host = (ServerEditFragment.mHostEdit).getText().toString().trim();
+        } catch (final NullPointerException ex) {
+            host = Constants.DEFAULT_SERVER;
+        }
+        try {
+            port = Integer.parseInt((ServerEditFragment.mPortEdit).getText().toString());
+        } catch (final NullPointerException ex) {
+            port = Constants.DEFAULT_PORT;
+        }
+        try {
+            username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
+        } catch (final NullPointerException ex) {
+            username = "Username";
+        }
+        try {
+            password = ServerEditFragment.mPasswordEdit.getText().toString();
+        } catch (final NullPointerException ex) {
+            password = "password";
+        }
+
+        Server masterServer;
+        masterServer = new Server(-1, name, host, port, username, password);
+        getDatabase().addServer(masterServer);
+        serverInfoUpdated();
+        //connectToServer(masterServer);
     }
 
     @Override
@@ -428,6 +476,8 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         preferences.unregisterOnSharedPreferenceChangeListener(this);
         mDatabase.close();
+
+
         super.onDestroy();
     }
 
@@ -863,7 +913,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         mPlayer = new MediaPlayer();
 
         try {
-            AssetFileDescriptor afd = getAssets().openFd("dialUpModem02.wav");
+            AssetFileDescriptor afd = getAssets().openFd("SummerBling.mp3");
             MediaPlayer player = new MediaPlayer();
             player.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
@@ -878,27 +928,44 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             player.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
             player.prepareAsync();
 
+
         } catch (IOException ioe) {
             System.err.println(ioe.getLocalizedMessage());
         }
     }
 
+    public Thread m_audioFBThread = new Thread() {
+        public void run() {
+            sendAudioFB();
+        }
+
+        ;
+    };
+
+    public static Thread lastThread = null;
+
     public Thread m_BTserverThread = new Thread() {
         public void run() {
+            listenBTclientReq();
 
-                listenBTclientReq();
+        }
 
-        };
+        ;
     };
 
     protected void listenBTclientReq() {
+        // Create BT Service
+        try {
+            m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM, UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         while (true) {
             try {
-                // Create BT Service
-                m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM, UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
 
                 // Accept Client request
                 //while(true) {
+
                 socket = m_serverSocket.accept();
 
                 // Process the Client Request
@@ -915,6 +982,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                             public void run() {
                                 // Client Request Stored.
                                 btClientRequest = new String(bytes, 0, count);
+                                Log.v("REQUEST:", "msg" + btClientRequest);
                                 // Flags the Create Server method
                                 clientRequest = true;
 
@@ -925,27 +993,22 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                     try {
                                         name = (ServerEditFragment.mNameEdit).getText().toString().trim();
                                     } catch (final NullPointerException ex) {
-                                        name = "EditServerName";
                                     }
                                     try {
                                         host = (ServerEditFragment.mHostEdit).getText().toString().trim();
                                     } catch (final NullPointerException ex) {
-                                        host = Constants.DEFAULT_SERVER;
                                     }
                                     try {
                                         port = Integer.parseInt((ServerEditFragment.mPortEdit).getText().toString());
                                     } catch (final NullPointerException ex) {
-                                        port = Constants.DEFAULT_PORT;
                                     }
                                     try {
                                         username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
                                     } catch (final NullPointerException ex) {
-                                        username = "EnterYourUsername";
                                     }
                                     try {
                                         password = ServerEditFragment.mPasswordEdit.getText().toString();
                                     } catch (final NullPointerException ex) {
-                                        password = "password";
                                     }
 
                                     // Writes server information to Linc Band client.
@@ -957,13 +1020,13 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                         e.printStackTrace();
                                     }
 
-                                    //mListener.createServer(true);
                                     Server masterServer;
                                     masterServer = new Server(-1, name, host, port, username, password);
-                                    getDatabase().addServer(masterServer);
+                                    //getDatabase().addServer(masterServer);
                                     serverInfoUpdated();
                                     connectToServer(masterServer);
 
+                                    //maudioFBThread.start();
                                     sendAudioFB();
                                 }
                                 // Handles slave situation
@@ -977,30 +1040,27 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                     port = Integer.parseInt(serverInfo[3]);
                                     try {
                                         username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
-                                    } catch (final NullPointerException ex) {
-                                        username = "EnterYourUsername";
-                                    }
+                                    } catch (final NullPointerException ex) {}
                                     try {
                                         password = serverInfo[4];
-                                    } catch (final NullPointerException ex) {
-                                        password = "password";
-                                    }
+                                    } catch (final NullPointerException ex) {}
 
                                     Server slaveServer;
                                     slaveServer = new Server(-1, name, host, port, username, password);
                                     getDatabase().addServer(slaveServer);
                                     serverInfoUpdated();
                                     connectToServer(slaveServer);
+                                    sendAudioFB();
                                 }
-                           /* // Handles syncComplete situation.
-                            if (btClientRequest.equals("syncComplete")){
-                                sendAudioFB();
-                            }*/
+
+                                try {
+                                    socket.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         });
                     }
-                    //m_serverSocket.close();
-                    break;
                 }
                 //}
             } catch (IOException e) {
@@ -1008,5 +1068,36 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             }
         }
     }
+
+    public static class SocketService extends Service {
+
+        public SocketService() {
+            super();
+        }
+
+
+        @Override
+        public IBinder onBind(Intent intent) {
+            return null;
+        }
+
+        @Override
+        public void onCreate() {
+            // This new service was created
+        }
+
+        @Override
+        public int onStartCommand(Intent intent, int flags, int startId) {
+            Log.i("LocalService", "Received start id " + startId + ": " + intent);
+            // We want this service to continue running until it is explicitly
+            // stopped, so return sticky.
+
+            lastThread.start();
+            //    Thread socketServerThread = new Thread(new SocketServerThread());
+            //socketServerThread.start();
+            return START_STICKY;
+        }
+    }
+
 }
 

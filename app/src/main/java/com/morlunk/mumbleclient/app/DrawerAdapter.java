@@ -103,7 +103,7 @@ public class DrawerAdapter extends ArrayAdapter<DrawerAdapter.DrawerRow> {
 //        add(new DrawerAdapter.DrawerItem(ITEM_ACCESS_TOKENS, context.getString(R.string.drawer_tokens), R.drawable.ic_action_save));
 //        add(new DrawerAdapter.DrawerItem(ITEM_PINNED_CHANNELS, context.getString(R.string.drawer_pinned), R.drawable.ic_action_comment));
         add(new DrawerAdapter.DrawerHeader(HEADER_SERVERS, context.getString(R.string.drawer_header_servers)));
-        add(new DrawerAdapter.DrawerItem(ITEM_FAVOURITES, "Linc Band Server", R.drawable.ic_action_favourite_on));
+        add(new DrawerAdapter.DrawerItem(ITEM_FAVOURITES, "Linc Band Servers", R.drawable.ic_action_favourite_on));
 //        add(new DrawerAdapter.DrawerItem(ITEM_LAN, context.getString(R.string.drawer_lan), R.drawable.ic_action_fullscreen)); // Coming soon, TODO
 //        add(new DrawerAdapter.DrawerItem(ITEM_PUBLIC, context.getString(R.string.drawer_public), R.drawable.ic_action_search));
         add(new DrawerAdapter.DrawerHeader(HEADER_GENERAL, context.getString(R.string.general)));
