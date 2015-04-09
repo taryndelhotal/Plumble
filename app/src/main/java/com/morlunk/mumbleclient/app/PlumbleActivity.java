@@ -141,6 +141,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
 
     // To insure user still sees server info regardless of client request.
     public static Boolean clientRequest = false;
+
     // To insure only slave devices get disconnected
     public static Boolean slaveServer = false;
 
@@ -154,7 +155,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     public static String host;
     public static int port;
     public static String username;
-    public static String password;
+    public static String password = "";
 
     // Initialize socket
     BluetoothSocket socket;
@@ -163,6 +164,9 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     private static final String TAG = "BTAudioFB";
     private MediaPlayer mPlayer = null;
     private AudioManager amanager = null;
+
+    Server masterServer;
+
 
     /**
      * List of fragments to be notified about service state changes.
@@ -237,27 +241,13 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             try {
                 CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
                 final X509Certificate x509 = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
-
-                //AlertDialog.Builder adb = new AlertDialog.Builder(PlumbleActivity.this);
-                //adb.setTitle(R.string.untrusted_certificate);
                 try {
                     MessageDigest digest = MessageDigest.getInstance("SHA-1");
                     byte[] certDigest = digest.digest(x509.getEncoded());
                     String hexDigest = new String(Hex.encode(certDigest));
-                    /*adb.setMessage(getString(R.string.certificate_info,
-                            x509.getSubjectDN().getName(),
-                            x509.getNotBefore().toString(),
-                            x509.getNotAfter().toString(),
-                            hexDigest));*/
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
-                    //adb.setMessage(x509.toString());
                 }
-                // adb.setPositiveButton(R.string.allow, new DialogInterface.OnClickListener() {
-
-                //@Override
-                // public void onClick(DialogInterface dialog, int which) {
-                // Try to add to trust store
                 try {
                     String alias = lastServer.getHost();
                     KeyStore trustStore = PlumbleTrustStore.getTrustStore(PlumbleActivity.this);
@@ -269,10 +259,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                     e.printStackTrace();
                     Toast.makeText(PlumbleActivity.this, R.string.trust_add_failed, Toast.LENGTH_LONG).show();
                 }
-                //}
-                //});
-                //adb.setNegativeButton(R.string.wizard_cancel, null);
-                //adb.show();
             } catch (CertificateException e) {
                 e.printStackTrace();
             }
@@ -390,6 +376,16 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                 e.printStackTrace();
             }
         }
+
+        SetServerInfo();
+
+        // Create BT Service
+        try {
+            m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM, UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         if (mSettings.isFirstRun()) {
             showSetupWizard();
             CreatUserServer();
@@ -403,8 +399,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         startService(new Intent(this, SocketService.class));
     }
 
-    public void CreatUserServer() {
-
+    public void SetServerInfo() {
         // Get server information.
         try {
             name = (ServerEditFragment.mNameEdit).getText().toString().trim();
@@ -429,14 +424,14 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         try {
             password = ServerEditFragment.mPasswordEdit.getText().toString();
         } catch (final NullPointerException ex) {
-            password = "password";
+            ex.getStackTrace();
         }
+    }
 
-        Server masterServer;
+    public void CreatUserServer() {
         masterServer = new Server(-1, name, host, port, username, password);
         getDatabase().addServer(masterServer);
         serverInfoUpdated();
-        //connectToServer(masterServer);
     }
 
     @Override
@@ -476,8 +471,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         preferences.unregisterOnSharedPreferenceChangeListener(this);
         mDatabase.close();
-
-
+        // stopService(new Intent(this, SocketService.class));
         super.onDestroy();
     }
 
@@ -523,7 +517,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                 try {
                     getService().disconnect();
                     // Remove server from server list if disconnected only if it is the slave server
-                    if (serverRequest == true) {
+                    if (slaveServer == true) {
                         FavouriteServerListFragment.deleteDisconnectedServer(getService().getConnectedServer());
                     }
                 } catch (RemoteException e) {
@@ -673,7 +667,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_frame, fragment, fragmentClass.getName())
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                .commit();
+                .commitAllowingStateLoss(); //commit;
         setTitle(mDrawerAdapter.getItemWithId(fragmentId).title);
     }
 
@@ -682,28 +676,28 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         try {
             if (mService != null &&
                     mService.getConnectionState() == JumbleService.STATE_CONNECTED) {
-                AlertDialog.Builder adb = new AlertDialog.Builder(this);
-                adb.setMessage(R.string.reconnect_dialog_message);
-                adb.setPositiveButton(R.string.connect, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            // Register an observer to reconnect to the new server once disconnected.
-                            mService.registerObserver(new JumbleObserver() {
-                                @Override
-                                public void onDisconnected(JumbleException e) throws RemoteException {
-                                    connectToServer(server);
-                                    mService.unregisterObserver(this);
-                                }
-                            });
-                            mService.disconnect();
-                        } catch (RemoteException e) {
-                            e.printStackTrace();
+                // AlertDialog.Builder adb = new AlertDialog.Builder(this);
+                //adb.setMessage(R.string.reconnect_dialog_message);
+                //adb.setPositiveButton(R.string.connect, new DialogInterface.OnClickListener() {
+                //@Override
+                //public void onClick(DialogInterface dialog, int which) {
+                try {
+                    // Register an observer to reconnect to the new server once disconnected.
+                    mService.registerObserver(new JumbleObserver() {
+                        @Override
+                        public void onDisconnected(JumbleException e) throws RemoteException {
+                            connectToServer(server);
+                            mService.unregisterObserver(this);
                         }
-                    }
-                });
-                adb.setNegativeButton(android.R.string.cancel, null);
-                adb.show();
+                    });
+                    mService.disconnect();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                //}
+                // });
+                // adb.setNegativeButton(android.R.string.cancel, null);
+                //adb.show();
                 return;
             }
         } catch (RemoteException e) {
@@ -918,7 +912,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             player.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
             player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-
             player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 public void onPrepared(MediaPlayer mp) {
                     mp.start();
@@ -928,7 +921,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             player.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
             player.prepareAsync();
 
-
         } catch (IOException ioe) {
             System.err.println(ioe.getLocalizedMessage());
         }
@@ -937,9 +929,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     public Thread m_audioFBThread = new Thread() {
         public void run() {
             sendAudioFB();
-        }
-
-        ;
+        } ;
     };
 
     public static Thread lastThread = null;
@@ -947,25 +937,13 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     public Thread m_BTserverThread = new Thread() {
         public void run() {
             listenBTclientReq();
-
-        }
-
-        ;
+        };
     };
 
     protected void listenBTclientReq() {
-        // Create BT Service
-        try {
-            m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM, UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         while (true) {
             try {
-
                 // Accept Client request
-                //while(true) {
-
                 socket = m_serverSocket.accept();
 
                 // Process the Client Request
@@ -989,26 +967,32 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                 // Handles master situation.
                                 if (btClientRequest.equals("GetServerInfo")) {
                                     masterRequest = true;
+                                    slaveServer = false;
                                     // Get server information.
                                     try {
-                                        name = (ServerEditFragment.mNameEdit).getText().toString().trim();
+                                        name = "Slave Band";
                                     } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
                                     }
                                     try {
                                         host = (ServerEditFragment.mHostEdit).getText().toString().trim();
                                     } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
                                     }
                                     try {
                                         port = Integer.parseInt((ServerEditFragment.mPortEdit).getText().toString());
                                     } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
                                     }
                                     try {
                                         username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
                                     } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
                                     }
                                     try {
                                         password = ServerEditFragment.mPasswordEdit.getText().toString();
                                     } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
                                     }
 
                                     // Writes server information to Linc Band client.
@@ -1020,13 +1004,11 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                         e.printStackTrace();
                                     }
 
-                                    Server masterServer;
                                     masterServer = new Server(-1, name, host, port, username, password);
-                                    //getDatabase().addServer(masterServer);
+                                    getDatabase().updateServer(masterServer);
                                     serverInfoUpdated();
                                     connectToServer(masterServer);
 
-                                    //maudioFBThread.start();
                                     sendAudioFB();
                                 }
                                 // Handles slave situation
@@ -1040,19 +1022,22 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                     port = Integer.parseInt(serverInfo[3]);
                                     try {
                                         username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
-                                    } catch (final NullPointerException ex) {}
-                                    try {
+                                    } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
+                                    }
+                                    /*try {
                                         password = serverInfo[4];
-                                    } catch (final NullPointerException ex) {}
+                                    } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
+                                    }*/
 
                                     Server slaveServer;
-                                    slaveServer = new Server(-1, name, host, port, username, password);
+                                    slaveServer = new Server(-1, name, host, port, username, "");
                                     getDatabase().addServer(slaveServer);
                                     serverInfoUpdated();
                                     connectToServer(slaveServer);
                                     sendAudioFB();
                                 }
-
                                 try {
                                     socket.close();
                                 } catch (IOException e) {
@@ -1062,7 +1047,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                         });
                     }
                 }
-                //}
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -1091,13 +1075,15 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             Log.i("LocalService", "Received start id " + startId + ": " + intent);
             // We want this service to continue running until it is explicitly
             // stopped, so return sticky.
-
             lastThread.start();
-            //    Thread socketServerThread = new Thread(new SocketServerThread());
-            //socketServerThread.start();
             return START_STICKY;
         }
-    }
 
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            stopService(new Intent(this, SocketService.class));
+        }
+    }
 }
 

@@ -59,11 +59,11 @@ public class ServerEditFragment extends DialogFragment {/*
     public static DatabaseProvider mDatabaseProvider;
 
     // Server info variables.
-    public static String name;
-    public static String host;
-    public static int port;
-    public static String username;
-    public static String password;
+    public String name;
+    public String host;
+    public int port;
+    public String username;
+    public String password;
 
     // Creates server fragment.
     @Override
