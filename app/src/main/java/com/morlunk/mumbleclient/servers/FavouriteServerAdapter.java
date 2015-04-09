@@ -52,7 +52,8 @@ public class FavouriteServerAdapter extends ServerAdapter<Server> {
                 mListener.shareServer(server);
                 return true;
             case R.id.menu_server_delete:
-                mListener.deleteServer(server);
+                if(server.getId()==1){}
+                else{ mListener.deleteServer(server);}
                 return true;
             default:
                 return false;

@@ -143,7 +143,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     public static Boolean clientRequest = false;
 
     // To insure only slave devices get disconnected
-    public static Boolean slaveServer = false;
+    public static Boolean slaveServerREQ = false;
 
     public static String btClientRequest;
 
@@ -165,7 +165,10 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     private MediaPlayer mPlayer = null;
     private AudioManager amanager = null;
 
-    Server masterServer;
+    Server userServer;
+    Server slaveServer;
+
+    public static Boolean nullThread = false;
 
 
     /**
@@ -377,8 +380,11 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             }
         }
 
-        SetServerInfo();
-
+        // Enable bluetooth if not on
+        if (!m_bluetooth.isEnabled()) {
+            Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
+        }
         // Create BT Service
         try {
             m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM, UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
@@ -386,17 +392,22 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             e.printStackTrace();
         }
 
+        //SetServerInfo();
         if (mSettings.isFirstRun()) {
             showSetupWizard();
-            CreatUserServer();
+            CreateUserServer();
         }
-        if (!m_bluetooth.isEnabled()) {
-            Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
-            //Toast.makeText(getApplicationContext(), "Bluetooth turned on", Toast.LENGTH_LONG).show();
-        }
+
+        //This can be worked on still --- not sure why we get NULL yet
+        // Start server socket service
         lastThread = this.m_BTserverThread;
         startService(new Intent(this, SocketService.class));
+
+        // Start thread even if service fails to start
+        if (nullThread == true){
+            m_BTserverThread.start();
+        }
+
     }
 
     public void SetServerInfo() {
@@ -428,9 +439,37 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         }
     }
 
-    public void CreatUserServer() {
-        masterServer = new Server(-1, name, host, port, username, password);
-        getDatabase().addServer(masterServer);
+
+    public void CreateUserServer() {
+        // Get server information.
+        try {
+            name = (ServerEditFragment.mNameEdit).getText().toString().trim();
+        } catch (final NullPointerException ex) {
+            name = "LincBand";
+        }
+        try {
+            host = (ServerEditFragment.mHostEdit).getText().toString().trim();
+        } catch (final NullPointerException ex) {
+            host = Constants.DEFAULT_SERVER;
+        }
+        try {
+            port = Integer.parseInt((ServerEditFragment.mPortEdit).getText().toString());
+        } catch (final NullPointerException ex) {
+            port = Constants.DEFAULT_PORT;
+        }
+        try {
+            username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
+        } catch (final NullPointerException ex) {
+            username = "Username";
+        }
+        try {
+            password = ServerEditFragment.mPasswordEdit.getText().toString();
+        } catch (final NullPointerException ex) {
+            ex.getStackTrace();
+        }
+
+        userServer = new Server(18, name, host, port, username, password);
+        getDatabase().addServer(userServer);
         serverInfoUpdated();
     }
 
@@ -517,7 +556,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                 try {
                     getService().disconnect();
                     // Remove server from server list if disconnected only if it is the slave server
-                    if (slaveServer == true) {
+                    if (slaveServerREQ == true) {
                         FavouriteServerListFragment.deleteDisconnectedServer(getService().getConnectedServer());
                     }
                 } catch (RemoteException e) {
@@ -943,6 +982,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     protected void listenBTclientReq() {
         while (true) {
             try {
+                Log.v("RUNNING:", "SERVICE******************************************" );
                 // Accept Client request
                 socket = m_serverSocket.accept();
 
@@ -961,59 +1001,30 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                 // Client Request Stored.
                                 btClientRequest = new String(bytes, 0, count);
                                 Log.v("REQUEST:", "msg" + btClientRequest);
-                                // Flags the Create Server method
-                                clientRequest = true;
 
                                 // Handles master situation.
                                 if (btClientRequest.equals("GetServerInfo")) {
-                                    masterRequest = true;
-                                    slaveServer = false;
-                                    // Get server information.
-                                    try {
-                                        name = "Slave Band";
-                                    } catch (final NullPointerException ex) {
-                                        ex.getStackTrace();
-                                    }
-                                    try {
-                                        host = (ServerEditFragment.mHostEdit).getText().toString().trim();
-                                    } catch (final NullPointerException ex) {
-                                        ex.getStackTrace();
-                                    }
-                                    try {
-                                        port = Integer.parseInt((ServerEditFragment.mPortEdit).getText().toString());
-                                    } catch (final NullPointerException ex) {
-                                        ex.getStackTrace();
-                                    }
-                                    try {
-                                        username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
-                                    } catch (final NullPointerException ex) {
-                                        ex.getStackTrace();
-                                    }
-                                    try {
-                                        password = ServerEditFragment.mPasswordEdit.getText().toString();
-                                    } catch (final NullPointerException ex) {
-                                        ex.getStackTrace();
-                                    }
+
+                                    // Ensures userServer never gets deleted
+                                    slaveServerREQ= false;
 
                                     // Writes server information to Linc Band client.
-                                    String serverInfo = name + "," + host + "," + port + "," + password;
+                                    String serverInfo = "SlaveBand" + "," + userServer.getHost() + "," + userServer.getPort() + "," + password;
                                     byte[] sendByte = serverInfo.getBytes();
                                     try {
                                         outputStream.write(sendByte);
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-
-                                    masterServer = new Server(-1, name, host, port, username, password);
-                                    getDatabase().updateServer(masterServer);
-                                    serverInfoUpdated();
-                                    connectToServer(masterServer);
+                                    connectToServer(userServer);
 
                                     sendAudioFB();
                                 }
+
                                 // Handles slave situation
                                 if (btClientRequest.contains("PutServerInfo")) {
-                                    serverRequest = true;
+                                    // Allows server to be deleted upon manually disconnecting
+                                    slaveServerREQ= true;
 
                                     // Stores received server information
                                     String[] serverInfo = btClientRequest.split(",");
@@ -1031,11 +1042,11 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                         ex.getStackTrace();
                                     }*/
 
-                                    Server slaveServer;
                                     slaveServer = new Server(-1, name, host, port, username, "");
                                     getDatabase().addServer(slaveServer);
                                     serverInfoUpdated();
                                     connectToServer(slaveServer);
+
                                     sendAudioFB();
                                 }
                                 try {
@@ -1059,7 +1070,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             super();
         }
 
-
         @Override
         public IBinder onBind(Intent intent) {
             return null;
@@ -1075,14 +1085,18 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             Log.i("LocalService", "Received start id " + startId + ": " + intent);
             // We want this service to continue running until it is explicitly
             // stopped, so return sticky.
-            lastThread.start();
+            if(lastThread != null){
+                lastThread.start();
+            }else{
+              nullThread = true;
+            }
             return START_STICKY;
         }
 
         @Override
         public void onDestroy() {
-            super.onDestroy();
             stopService(new Intent(this, SocketService.class));
+            super.onDestroy();
         }
     }
 }

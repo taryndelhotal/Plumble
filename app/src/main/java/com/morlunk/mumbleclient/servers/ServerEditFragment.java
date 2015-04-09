@@ -171,19 +171,18 @@ public class ServerEditFragment extends DialogFragment {/*
      */
     public Server createServer(boolean shouldCommit) {
 
-        //if (clientRequest == false) {
-            name = (mNameEdit).getText().toString().trim();
-            host = "76.105.240.184";
+        name = (mNameEdit).getText().toString().trim();
+        host = "76.105.240.184";
 
-            try {
-                port = Integer.parseInt((mPortEdit).getText().toString());
-            } catch (final NumberFormatException ex) {
-                port = Constants.DEFAULT_PORT;
-            }
+        try {
+            port = Integer.parseInt((mPortEdit).getText().toString());
+        } catch (final NumberFormatException ex) {
+            port = Constants.DEFAULT_PORT;
+        }
 
-            username = (mUsernameEdit).getText().toString().trim();
-            password = mPasswordEdit.getText().toString();
-        //}
+        username = (mUsernameEdit).getText().toString().trim();
+        password = mPasswordEdit.getText().toString();
+
 
         username = (mUsernameEdit).getText().toString().trim();
         if (username.equals(""))
