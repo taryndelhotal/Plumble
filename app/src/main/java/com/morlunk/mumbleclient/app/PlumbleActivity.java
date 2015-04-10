@@ -168,9 +168,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     Server userServer;
     Server slaveServer;
 
-    public static Boolean nullThread = false;
-
-
     /**
      * List of fragments to be notified about service state changes.
      */
@@ -400,45 +397,10 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
 
         //This can be worked on still --- not sure why we get NULL yet
         // Start server socket service
-        lastThread = this.m_BTserverThread;
-        startService(new Intent(this, SocketService.class));
-
-        // Start thread even if service fails to start
-        if (nullThread == true){
-            m_BTserverThread.start();
-        }
-
+        m_BTserverThread.start();
+        //lastThread = this.m_BTserverThread;
+        //startService(new Intent(this, SocketService.class));
     }
-
-    public void SetServerInfo() {
-        // Get server information.
-        try {
-            name = (ServerEditFragment.mNameEdit).getText().toString().trim();
-        } catch (final NullPointerException ex) {
-            name = "LincBand";
-        }
-        try {
-            host = (ServerEditFragment.mHostEdit).getText().toString().trim();
-        } catch (final NullPointerException ex) {
-            host = Constants.DEFAULT_SERVER;
-        }
-        try {
-            port = Integer.parseInt((ServerEditFragment.mPortEdit).getText().toString());
-        } catch (final NullPointerException ex) {
-            port = Constants.DEFAULT_PORT;
-        }
-        try {
-            username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
-        } catch (final NullPointerException ex) {
-            username = "Username";
-        }
-        try {
-            password = ServerEditFragment.mPasswordEdit.getText().toString();
-        } catch (final NullPointerException ex) {
-            ex.getStackTrace();
-        }
-    }
-
 
     public void CreateUserServer() {
         // Get server information.
@@ -970,7 +932,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             sendAudioFB();
         } ;
     };
-
     public static Thread lastThread = null;
 
     public Thread m_BTserverThread = new Thread() {
@@ -1007,15 +968,45 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
 
                                     // Ensures userServer never gets deleted
                                     slaveServerREQ= false;
+                                    // Get server information.
+                                    try {
+                                        name = (ServerEditFragment.mNameEdit).getText().toString().trim();
+                                    } catch (final NullPointerException ex) {
+                                        name = "LincBand";
+                                    }
+                                    try {
+                                        host = (ServerEditFragment.mHostEdit).getText().toString().trim();
+                                    } catch (final NullPointerException ex) {
+                                        host = Constants.DEFAULT_SERVER;
+                                    }
+                                    try {
+                                        port = Integer.parseInt((ServerEditFragment.mPortEdit).getText().toString());
+                                    } catch (final NullPointerException ex) {
+                                        port = Constants.DEFAULT_PORT;
+                                    }
+                                    try {
+                                        username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
+                                    } catch (final NullPointerException ex) {
+                                        username = "Username";
+                                    }
+                                    try {
+                                        password = ServerEditFragment.mPasswordEdit.getText().toString();
+                                    } catch (final NullPointerException ex) {
+                                        ex.getStackTrace();
+                                    }
 
                                     // Writes server information to Linc Band client.
-                                    String serverInfo = "SlaveBand" + "," + userServer.getHost() + "," + userServer.getPort() + "," + password;
+                                    String serverInfo = "SlaveBand" + ","+ host + "," + port + "," + password;
                                     byte[] sendByte = serverInfo.getBytes();
                                     try {
                                         outputStream.write(sendByte);
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
+
+                                    userServer = new Server(18, name, host, port, username, password);
+                                    getDatabase().addServer(userServer);
+                                    serverInfoUpdated();
                                     connectToServer(userServer);
 
                                     sendAudioFB();
@@ -1085,11 +1076,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             Log.i("LocalService", "Received start id " + startId + ": " + intent);
             // We want this service to continue running until it is explicitly
             // stopped, so return sticky.
-            if(lastThread != null){
                 lastThread.start();
-            }else{
-              nullThread = true;
-            }
             return START_STICKY;
         }
 
