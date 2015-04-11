@@ -139,15 +139,11 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     // Server socket.
     private BluetoothServerSocket m_serverSocket;
 
-    // To insure user still sees server info regardless of client request.
-    public static Boolean clientRequest = false;
-
     // To insure only slave devices get disconnected
     public static Boolean slaveServerREQ = false;
 
     public static String btClientRequest;
 
-    public static Boolean masterRequest = false;
     public static Boolean serverRequest = false;
 
     // Server info variables.
@@ -404,12 +400,13 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         startService(new Intent(this, SocketService.class));
 
         // Start thread even if service fails to start
-        if (nullThread == true){
-            m_BTserverThread.start();
-        }
+//        if (nullThread == true){
+//            m_BTserverThread.start();
+//        }
 
     }
 
+    // FIXME: JH: Is this ever used???
     public void SetServerInfo() {
         // Get server information.
         try {
@@ -965,6 +962,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         }
     }
 
+    // FIXME: JH: is this ever used???
     public Thread m_audioFBThread = new Thread() {
         public void run() {
             sendAudioFB();
@@ -980,6 +978,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     };
 
     protected void listenBTclientReq() {
+        // FIXME: JH: This loop only terminates upon exception. Is this what we want???
         while (true) {
             try {
                 Log.v("RUNNING:", "SERVICE******************************************" );
@@ -991,6 +990,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                     final InputStream inputStream = socket.getInputStream();
                     final OutputStream outputStream = socket.getOutputStream();
 
+                    // FIXME: JH: I think this readBytes initialization is redundant...
                     int readBytes = -1;
                     final byte[] bytes = new byte[2048];
                     for (; (readBytes = inputStream.read(bytes)) > -1; ) {
@@ -1002,23 +1002,40 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                 btClientRequest = new String(bytes, 0, count);
                                 Log.v("REQUEST:", "msg" + btClientRequest);
 
+                                // JH: Use SQLite database
+                                // Retrieve master server object from database
+                                // It is always at position 0 in the server list
+                                Server masterServer = getDatabase().getServers().get(0);
+
                                 // Handles master situation.
                                 if (btClientRequest.equals("GetServerInfo")) {
 
                                     // Ensures userServer never gets deleted
                                     slaveServerREQ= false;
 
-                                    // Writes server information to Linc Band client.
-                                    String serverInfo = "SlaveBand" + "," + userServer.getHost() + "," + userServer.getPort() + "," + password;
+                                    // JH: Extract relevant data to send to Linc Band device
+                                    // Do not try to extract data from edit fragment!
+                                    // That is hacky and bug prone. Use the DB.
+                                    host = masterServer.getHost();
+                                    port = masterServer.getPort();
+                                    password = masterServer.getPassword();
+
+                                    // Send connection info to Linc Band over SPP Connection
+                                    // JH: Added extra delimiter after password
+                                    String serverInfo = "SlaveBand" + "," + host + "," + port + "," + password + ",";
                                     byte[] sendByte = serverInfo.getBytes();
                                     try {
                                         outputStream.write(sendByte);
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-                                    connectToServer(userServer);
 
-                                    sendAudioFB();
+                                    // JH: Information correctly done, now connect to server
+                                    // We are connecting to the server we retrieved from DB
+                                    // userServer is NULL unless edit fragment is opened!!!
+                                    //connectToServer(userServer);
+                                    connectToServer(masterServer);
+
                                 }
 
                                 // Handles slave situation
@@ -1026,29 +1043,27 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                     // Allows server to be deleted upon manually disconnecting
                                     slaveServerREQ= true;
 
-                                    // Stores received server information
-                                    String[] serverInfo = btClientRequest.split(",");
+                                    // Parse and store received server information
+                                    // split must use limit param to prevent NPE if no password
+                                    String[] serverInfo = btClientRequest.split(",", -1);
                                     name = serverInfo[1];
                                     host = serverInfo[2];
                                     port = Integer.parseInt(serverInfo[3]);
-                                    try {
-                                        username = (ServerEditFragment.mUsernameEdit).getText().toString().trim();
-                                    } catch (final NullPointerException ex) {
-                                        ex.getStackTrace();
-                                    }
-                                    /*try {
-                                        password = serverInfo[4];
-                                    } catch (final NullPointerException ex) {
-                                        ex.getStackTrace();
-                                    }*/
+                                    password = serverInfo[4];
 
-                                    slaveServer = new Server(-1, name, host, port, username, "");
+                                    // JH: Username is retrieved from masterServer object
+                                    username = masterServer.getUsername();
+
+                                    // JH: create slave server object with retrieved values
+                                    // FIXME: why the "-1" ID field???
+                                    slaveServer = new Server(-1, name, host, port, username, password);
                                     getDatabase().addServer(slaveServer);
                                     serverInfoUpdated();
                                     connectToServer(slaveServer);
-
-                                    sendAudioFB();
                                 }
+                                // JH: Redundant code moved outside if statements
+                                // Connect Bluetooth SCO and Send connection tone to Linc Band
+                                sendAudioFB();
                                 try {
                                     socket.close();
                                 } catch (IOException e) {
