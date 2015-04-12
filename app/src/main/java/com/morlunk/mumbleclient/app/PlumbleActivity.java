@@ -381,14 +381,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
         }
-        // Create BT Service
-        try {
-            m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM, UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        //SetServerInfo();
         if (mSettings.isFirstRun()) {
             showSetupWizard();
             CreateUserServer();
@@ -398,11 +391,6 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
         // Start server socket service
         lastThread = this.m_BTserverThread;
         startService(new Intent(this, SocketService.class));
-
-        // Start thread even if service fails to start
-//        if (nullThread == true){
-//            m_BTserverThread.start();
-//        }
 
     }
 
@@ -953,6 +941,12 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                     mp.start();
                 }
             });
+            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mp.release();
+                }
+            });
 
             player.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
             player.prepareAsync();
@@ -966,7 +960,9 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     public Thread m_audioFBThread = new Thread() {
         public void run() {
             sendAudioFB();
-        } ;
+        }
+
+        ;
     };
 
     public static Thread lastThread = null;
@@ -974,16 +970,29 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
     public Thread m_BTserverThread = new Thread() {
         public void run() {
             listenBTclientReq();
-        };
+        }
+
+        ;
     };
 
     protected void listenBTclientReq() {
         // FIXME: JH: This loop only terminates upon exception. Is this what we want???
+
+        // Create BT Service
+        try {
+            m_serverSocket = m_bluetooth.listenUsingRfcommWithServiceRecord(PROTOCOL_SCHEME_RFCOMM, UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         while (true) {
             try {
-                Log.v("RUNNING:", "SERVICE******************************************" );
+                Log.v("RUNNING:", "SERVICE******************************************");
                 // Accept Client request
-                socket = m_serverSocket.accept();
+                try {
+                    socket = m_serverSocket.accept();
+                } catch (Exception ex) {
+                    break;
+                }
 
                 // Process the Client Request
                 if (socket != null) {
@@ -1011,7 +1020,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                 if (btClientRequest.equals("GetServerInfo")) {
 
                                     // Ensures userServer never gets deleted
-                                    slaveServerREQ= false;
+                                    slaveServerREQ = false;
 
                                     // JH: Extract relevant data to send to Linc Band device
                                     // Do not try to extract data from edit fragment!
@@ -1041,7 +1050,7 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
                                 // Handles slave situation
                                 if (btClientRequest.contains("PutServerInfo")) {
                                     // Allows server to be deleted upon manually disconnecting
-                                    slaveServerREQ= true;
+                                    slaveServerREQ = true;
 
                                     // Parse and store received server information
                                     // split must use limit param to prevent NPE if no password
@@ -1100,10 +1109,10 @@ public class PlumbleActivity extends ActionBarActivity implements ListView.OnIte
             Log.i("LocalService", "Received start id " + startId + ": " + intent);
             // We want this service to continue running until it is explicitly
             // stopped, so return sticky.
-            if(lastThread != null){
+            if (lastThread != null) {
                 lastThread.start();
-            }else{
-              nullThread = true;
+            } else {
+                nullThread = true;
             }
             return START_STICKY;
         }
